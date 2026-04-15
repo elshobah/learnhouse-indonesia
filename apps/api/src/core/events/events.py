@@ -15,6 +15,40 @@ _cleanup_task = None
 _payment_expiry_task = None
 
 
+def _run_alembic_migrations():
+    """Run Alembic migrations on startup."""
+    try:
+        from alembic.config import Config
+        from alembic import command
+        import os
+        import sys
+
+        # Get the path to the migrations directory
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        migrations_dir = os.path.join(base_dir, 'migrations')
+
+        logger.info(f"Running Alembic migrations from {migrations_dir}")
+
+        # Get database URL from config
+        learnhouse_config = get_learnhouse_config()
+        db_url = learnhouse_config.database_config.sql_connection_string
+
+        # Create Alembic config programmatically
+        alembic_cfg = Config()
+        alembic_cfg.set_main_option('sqlalchemy.url', db_url)
+        alembic_cfg.set_main_option('script_location', migrations_dir)
+
+        # Run upgrade
+        command.upgrade(alembic_cfg, "head")
+        logger.info("Alembic migrations completed successfully")
+
+    except Exception as e:
+        logger.warning(f"Alembic migration encountered an issue (non-fatal, will attempt to continue): {e}")
+        # Don't fail the startup if migrations fail, as the app might still be usable
+        import traceback
+        logger.debug(f"Migration error details: {traceback.format_exc()}")
+
+
 async def _periodic_migration_cleanup():
     """Run migration temp cleanup every 10 minutes."""
     from src.services.courses.migration.migration_service import cleanup_old_temp_migrations
@@ -82,6 +116,9 @@ def startup_app(app: FastAPI) -> Callable:
 
         # Connect to database
         await connect_to_db(app)
+
+        # Run Alembic migrations
+        _run_alembic_migrations()
 
         # Create logs directory
         await create_logs_dir()
