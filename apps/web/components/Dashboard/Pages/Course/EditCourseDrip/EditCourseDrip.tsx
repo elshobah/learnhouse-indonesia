@@ -7,7 +7,7 @@ import { AlertTriangle, Lock, Clock, ChevronDown, Save, Plus, Trash2 } from 'luc
 import FormLayout, { FormField, FormLabelAndMessage } from '@components/Objects/StyledElements/Form/Form';
 import * as Form from '@radix-ui/react-form';
 import { getCourseDripConfig, updateCourseDripMode, upsertActivityDrip, deleteActivityDrip } from '@/services/courses/drip';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/components/Contexts/AuthContext';
 import { useCourseFieldSync } from '@components/Contexts/CourseContext';
 
 type EditCourseDripProps = {

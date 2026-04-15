@@ -3,7 +3,8 @@
  * API calls for managing and reading course content drip (scheduled content release)
  */
 
-import { api } from "@/services/api";
+import { getAPIUrl } from "@/services/config/config";
+import { RequestBodyWithAuthHeader, errorHandling } from "@/services/utils/ts/requests";
 
 export interface DripStatus {
   is_locked: boolean;
@@ -34,15 +35,11 @@ export async function getCourseDripConfig(
   courseUuid: string,
   accessToken: string
 ): Promise<CourseDripConfig> {
-  const response = await api.get(
-    `/courses/${courseUuid}/drip`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
+  const result = await fetch(
+    `${getAPIUrl()}courses/${courseUuid}/drip`,
+    RequestBodyWithAuthHeader('GET', null, null, accessToken)
   );
-  return response.data;
+  return errorHandling(result);
 }
 
 /**
@@ -53,16 +50,11 @@ export async function updateCourseDripMode(
   mode: string | null,
   accessToken: string
 ): Promise<{ drip_mode: string | null }> {
-  const response = await api.put(
-    `/courses/${courseUuid}/drip/mode`,
-    { drip_mode: mode },
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
+  const result = await fetch(
+    `${getAPIUrl()}courses/${courseUuid}/drip/mode`,
+    RequestBodyWithAuthHeader('PUT', { drip_mode: mode }, null, accessToken)
   );
-  return response.data;
+  return errorHandling(result);
 }
 
 /**
@@ -74,16 +66,11 @@ export async function upsertActivityDrip(
   config: DripConfig,
   accessToken: string
 ): Promise<any> {
-  const response = await api.put(
-    `/courses/${courseUuid}/drip/activity/${activityUuid}`,
-    config,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
+  const result = await fetch(
+    `${getAPIUrl()}courses/${courseUuid}/drip/activity/${activityUuid}`,
+    RequestBodyWithAuthHeader('PUT', config, null, accessToken)
   );
-  return response.data;
+  return errorHandling(result);
 }
 
 /**
@@ -94,15 +81,11 @@ export async function deleteActivityDrip(
   activityUuid: string,
   accessToken: string
 ): Promise<{ status: string }> {
-  const response = await api.delete(
-    `/courses/${courseUuid}/drip/activity/${activityUuid}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
+  const result = await fetch(
+    `${getAPIUrl()}courses/${courseUuid}/drip/activity/${activityUuid}`,
+    RequestBodyWithAuthHeader('DELETE', null, null, accessToken)
   );
-  return response.data;
+  return errorHandling(result);
 }
 
 /**
@@ -112,13 +95,9 @@ export async function getCourseDripStatus(
   courseUuid: string,
   accessToken: string
 ): Promise<CourseDripStatus> {
-  const response = await api.get(
-    `/courses/${courseUuid}/drip/status`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
+  const result = await fetch(
+    `${getAPIUrl()}courses/${courseUuid}/drip/status`,
+    RequestBodyWithAuthHeader('GET', null, null, accessToken)
   );
-  return response.data;
+  return errorHandling(result);
 }
