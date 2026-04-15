@@ -35,7 +35,7 @@ const getYouTubeEmbedUrl = (url: string): string => {
     if (match && match[1]) {
       const videoId = match[1];
       if (videoId.length === 11) {
-        return `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`;
+        return `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0&fs=0&modestbranding=1&iv_load_policy=3`;
       }
     }
 
@@ -46,10 +46,11 @@ const getYouTubeEmbedUrl = (url: string): string => {
 };
 
 // Memoized component for the embed content
-const MemoizedEmbed = React.memo(({ embedUrl, sanitizedEmbedCode, embedType }: {
+const MemoizedEmbed = React.memo(({ embedUrl, sanitizedEmbedCode, embedType, isEditable }: {
   embedUrl: string;
   sanitizedEmbedCode: string;
   embedType: 'url' | 'code';
+  isEditable: boolean;
 }) => {
   useEffect(() => {
     if (embedType === 'code' && sanitizedEmbedCode) {
@@ -86,6 +87,35 @@ const MemoizedEmbed = React.memo(({ embedUrl, sanitizedEmbedCode, embedType }: {
     }
 
     const processedUrl = isYoutubeUrl ? getYouTubeEmbedUrl(embedUrl) : embedUrl;
+
+    // Untuk YouTube saat view mode (bukan edit): tambahkan proteksi overlay
+    if (isYoutubeUrl && !isEditable) {
+      return (
+        <div
+          className="relative w-full h-full"
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <iframe
+            src={processedUrl}
+            className="w-full h-full rounded-lg"
+            frameBorder="0"
+          />
+          {/* Protection overlay covering YouTube control bar */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: '40px',
+              zIndex: 10,
+              cursor: 'default',
+            }}
+          />
+        </div>
+      );
+    }
 
     return (
       <iframe
@@ -304,11 +334,12 @@ function EmbedObjectsComponent(props: any) {
         embedUrl={embedUrl}
         sanitizedEmbedCode={sanitizedEmbedCode}
         embedType={embedType}
+        isEditable={isEditable}
       />
     ) : (
       <div className="w-full h-full bg-neutral-100 rounded-lg" />
     )
-  ), [embedUrl, sanitizedEmbedCode, embedType, isResizing]);
+  ), [embedUrl, sanitizedEmbedCode, embedType, isResizing, isEditable]);
 
   const [activeInput, setActiveInput] = useState<'none' | 'url' | 'code'>('none');
   const [selectedProduct, setSelectedProduct] = useState<typeof supportedProducts[0] | null>(null);

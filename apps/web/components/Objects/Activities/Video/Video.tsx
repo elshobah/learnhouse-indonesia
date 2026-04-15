@@ -71,7 +71,10 @@ function VideoActivity({ activity, course, orgUuid }: VideoActivityProps) {
           )}
           {activity.activity_sub_type === 'SUBTYPE_VIDEO_YOUTUBE' && (
             <div className="my-0 sm:my-3 md:my-5 w-full">
-              <div className="relative w-full aspect-video sm:rounded-lg overflow-hidden ring-0 sm:ring-1 sm:ring-gray-200/10 sm:dark:ring-gray-700/20 shadow-none">
+              <div
+                className="relative w-full aspect-video sm:rounded-lg overflow-hidden ring-0 sm:ring-1 sm:ring-gray-200/10 sm:dark:ring-gray-700/20 shadow-none"
+                onContextMenu={(e) => e.preventDefault()}
+              >
                 <YouTube
                   className="w-full h-full"
                   opts={{
@@ -84,7 +87,9 @@ function VideoActivity({ activity, course, orgUuid }: VideoActivityProps) {
                       end: activity.details?.endTime || undefined,
                       controls: 1,
                       modestbranding: 1,
-                      rel: 0
+                      rel: 0,
+                      fs: 0,
+                      iv_load_policy: 3
                     },
                   }}
                   videoId={videoId}
@@ -92,6 +97,20 @@ function VideoActivity({ activity, course, orgUuid }: VideoActivityProps) {
                     if (activity.details?.startTime) {
                       event.target.seekTo(activity.details.startTime, true)
                     }
+                  }}
+                />
+                {/* Protection overlay covering YouTube control bar */}
+                <div
+                  aria-hidden="true"
+                  onContextMenu={(e) => e.preventDefault()}
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: '40px',
+                    zIndex: 10,
+                    cursor: 'default',
                   }}
                 />
               </div>
