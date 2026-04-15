@@ -100,15 +100,30 @@ const MemoizedEmbed = React.memo(({ embedUrl, sanitizedEmbedCode, embedType, isE
             className="w-full h-full rounded-lg"
             frameBorder="0"
           />
-          {/* Protection overlay covering YouTube control bar */}
+          {/* Protection overlay covering YouTube title and channel (top area) */}
           <div
             aria-hidden="true"
+            onContextMenu={(e) => e.preventDefault()}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '60px',
+              zIndex: 10,
+              cursor: 'default',
+            }}
+          />
+          {/* Protection overlay covering YouTube control bar and share button (bottom area) */}
+          <div
+            aria-hidden="true"
+            onContextMenu={(e) => e.preventDefault()}
             style={{
               position: 'absolute',
               bottom: 0,
               left: 0,
               right: 0,
-              height: '40px',
+              height: '60px',
               zIndex: 10,
               cursor: 'default',
             }}
