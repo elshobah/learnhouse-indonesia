@@ -104,28 +104,32 @@ const MemoizedEmbed = React.memo(({ embedUrl, sanitizedEmbedCode, embedType, isE
           <div
             aria-hidden="true"
             onContextMenu={(e) => e.preventDefault()}
+            onClick={(e) => e.preventDefault()}
             style={{
               position: 'absolute',
               top: 0,
               left: 0,
               right: 0,
-              height: '60px',
+              height: '100px',
               zIndex: 10,
               cursor: 'default',
+              pointerEvents: 'auto',
             }}
           />
           {/* Protection overlay covering YouTube control bar and share button (bottom area) */}
           <div
             aria-hidden="true"
             onContextMenu={(e) => e.preventDefault()}
+            onClick={(e) => e.preventDefault()}
             style={{
               position: 'absolute',
               bottom: 0,
               left: 0,
               right: 0,
-              height: '60px',
+              height: '80px',
               zIndex: 10,
               cursor: 'default',
+              pointerEvents: 'auto',
             }}
           />
         </div>
