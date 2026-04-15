@@ -5,7 +5,7 @@ import OrgScripts from '@/components/OrgScripts/OrgScripts'
 import { usePathname } from 'next/navigation'
 import { useOrg } from '@/components/Contexts/OrgContext'
 import Link from 'next/link'
-import { Github } from 'lucide-react'
+import { Code } from 'lucide-react'
 
 const Footer: React.FC = () => {
   const pathname = usePathname()
@@ -91,7 +91,7 @@ const Footer: React.FC = () => {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded transition text-sm"
                 >
-                  <Github className="w-4 h-4" />
+                  <Code className="w-4 h-4" />
                   View Source Code
                 </a>
               </div>
