@@ -9,6 +9,7 @@ Handles:
 """
 
 import random
+import logging
 from datetime import datetime, timedelta
 from typing import Optional
 from sqlmodel import Session, select
@@ -24,6 +25,11 @@ from src.db.payment_indonesia import (
 )
 from src.db.organizations import Organization
 from src.db.courses.courses import Course
+from src.db.users import User
+from src.db.usergroup_resources import UserGroupResource
+from src.db.usergroup_user import UserGroupUser
+
+logger = logging.getLogger(__name__)
 
 
 def generate_unique_code(db_session: Session, org_id: int, date_str: str) -> int:
@@ -135,6 +141,133 @@ async def create_transaction(
     db_session.refresh(transaction)
 
     return ManualTransactionRead.from_orm(transaction)
+
+
+async def create_enrollment(
+    db_session: Session,
+    org_id: int,
+    student_user_id: str,
+    course_id: str,
+) -> bool:
+    """
+    Enroll a student in a course by adding them to the course's user groups.
+
+    This function:
+    1. Finds the course by ID (UUID or numeric)
+    2. Finds all user groups linked to that course
+    3. Adds the student to each of those user groups
+
+    Args:
+        db_session: Database session
+        org_id: Organization ID
+        student_user_id: Student user ID (from user table)
+        course_id: Course ID (UUID or numeric ID)
+
+    Returns:
+        True if enrollment successful, False otherwise
+
+    Raises:
+        HTTPException: If student user not found
+    """
+    try:
+        # Find the student user by ID
+        student_user = db_session.exec(
+            select(User).where(User.id == int(student_user_id))
+        ).first()
+
+        if not student_user:
+            logger.error(f"Student user {student_user_id} not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Student user not found"
+            )
+
+        # Find the course (try UUID first, then numeric ID)
+        course = None
+        if course_id.startswith("course_"):
+            # It's a UUID
+            course = db_session.exec(
+                select(Course).where(
+                    Course.course_uuid == course_id,
+                    Course.org_id == org_id
+                )
+            ).first()
+        else:
+            # Try numeric ID
+            try:
+                course = db_session.exec(
+                    select(Course).where(
+                        Course.id == int(course_id),
+                        Course.org_id == org_id
+                    )
+                ).first()
+            except ValueError:
+                pass
+
+        if not course:
+            logger.error(f"Course {course_id} not found in org {org_id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Course not found"
+            )
+
+        # Find all user groups linked to this course
+        course_uuid = course.course_uuid
+        usergroup_resources = db_session.exec(
+            select(UserGroupResource).where(
+                UserGroupResource.resource_uuid == course_uuid
+            )
+        ).all()
+
+        if not usergroup_resources:
+            logger.warning(f"Course {course_id} has no user groups linked. Student will not have access.")
+            return False
+
+        # Add student to each user group
+        enrollment_count = 0
+        for ugr in usergroup_resources:
+            # Check if student is already in this group
+            existing = db_session.exec(
+                select(UserGroupUser).where(
+                    UserGroupUser.usergroup_id == ugr.usergroup_id,
+                    UserGroupUser.user_id == student_user.id,
+                    UserGroupUser.org_id == org_id,
+                )
+            ).first()
+
+            if existing:
+                logger.info(f"Student {student_user_id} already in user group {ugr.usergroup_id}")
+                continue
+
+            # Add student to user group
+            ugu = UserGroupUser(
+                usergroup_id=ugr.usergroup_id,
+                user_id=student_user.id,
+                org_id=org_id,
+                creation_date=str(datetime.utcnow()),
+                update_date=str(datetime.utcnow()),
+            )
+
+            db_session.add(ugu)
+            enrollment_count += 1
+
+        db_session.commit()
+
+        if enrollment_count > 0:
+            logger.info(f"Successfully enrolled student {student_user_id} in {enrollment_count} user groups for course {course_id}")
+            return True
+        else:
+            logger.info(f"Student {student_user_id} already enrolled in all user groups for course {course_id}")
+            return True
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating enrollment: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error enrolling student in course"
+        )
 
 
 async def get_transaction(
@@ -270,8 +403,19 @@ async def verify_transaction(
     db_session.commit()
     db_session.refresh(transaction)
 
-    # TODO: Create enrollment here
-    # await create_enrollment(db_session, org_id, transaction.student_user_id, transaction.course_id)
+    # Create enrollment automatically when payment is verified
+    try:
+        await create_enrollment(
+            db_session,
+            org_id,
+            transaction.student_user_id,
+            transaction.course_id
+        )
+        logger.info(f"Enrollment created for student {transaction.student_user_id} in course {transaction.course_id}")
+    except Exception as e:
+        logger.error(f"Failed to create enrollment after payment verification: {str(e)}")
+        # Don't fail the verification if enrollment creation fails - log it and continue
+        # The transaction is marked as VERIFIED, but enrollment may need manual follow-up
 
     return ManualTransactionRead.from_orm(transaction)
 
