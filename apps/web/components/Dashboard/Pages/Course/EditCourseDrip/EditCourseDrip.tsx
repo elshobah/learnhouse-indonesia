@@ -38,7 +38,7 @@ interface Chapter {
 
 const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { accessToken } = useAuth();
   const { course } = useCourseFieldSync();
   const [dripMode, setDripMode] = useState<string | null>(null);
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set());
@@ -49,7 +49,7 @@ const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid })
 
   // Fetch drip config
   const { data: dripConfig, error: dripError } = useSWR(
-    user && course_uuid ? [`/drip-config/${course_uuid}`, user.access_token] : null,
+    accessToken && course_uuid ? [`/drip-config/${course_uuid}`, accessToken] : null,
     ([url, token]) => getCourseDripConfig(course_uuid!, token)
   );
 
@@ -83,9 +83,9 @@ const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid })
   const handleModeChange = async (newMode: string | null) => {
     setLoading(true);
     try {
-      await updateCourseDripMode(course_uuid!, newMode, user!.access_token);
+      await updateCourseDripMode(course_uuid!, newMode, accessToken!);
       setDripMode(newMode);
-      await mutate([`/drip-config/${course_uuid}`, user!.access_token]);
+      await mutate([`/drip-config/${course_uuid}`, accessToken!]);
     } catch (error) {
       console.error('Error updating drip mode:', error);
       alert('Failed to update drip mode');
@@ -108,9 +108,9 @@ const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid })
     setLoading(true);
     try {
       const config = activityConfigs[activityUuid];
-      await upsertActivityDrip(course_uuid!, activityUuid, config, user!.access_token);
+      await upsertActivityDrip(course_uuid!, activityUuid, config, accessToken!);
       alert('Activity drip configuration saved');
-      await mutate([`/drip-config/${course_uuid}`, user!.access_token]);
+      await mutate([`/drip-config/${course_uuid}`, accessToken!]);
     } catch (error) {
       console.error('Error saving activity config:', error);
       alert('Failed to save activity configuration');
@@ -124,11 +124,11 @@ const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid })
 
     setLoading(true);
     try {
-      await deleteActivityDrip(course_uuid!, activityUuid, user!.access_token);
+      await deleteActivityDrip(course_uuid!, activityUuid, accessToken!);
       const newConfigs = { ...activityConfigs };
       delete newConfigs[activityUuid];
       setActivityConfigs(newConfigs);
-      await mutate([`/drip-config/${course_uuid}`, user!.access_token]);
+      await mutate([`/drip-config/${course_uuid}`, accessToken!]);
     } catch (error) {
       console.error('Error deleting activity config:', error);
       alert('Failed to delete activity configuration');
