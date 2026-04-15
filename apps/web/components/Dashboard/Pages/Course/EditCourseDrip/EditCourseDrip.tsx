@@ -170,7 +170,7 @@ const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid })
         {isExpanded && (
           <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
             {dripMode === 'BY_DATE' && (
-              <FormField>
+              <FormField name={`available_from_${activity.activity_uuid}`}>
                 <FormLabelAndMessage label="Available From" message="" />
                 <input
                   type="datetime-local"
@@ -188,7 +188,7 @@ const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid })
             )}
 
             {dripMode === 'DAYS_AFTER_ENROLLMENT' && (
-              <FormField>
+              <FormField name={`days_after_enrollment_${activity.activity_uuid}`}>
                 <FormLabelAndMessage label="Days After Enrollment" message="" />
                 <input
                   type="number"
@@ -208,7 +208,7 @@ const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid })
             )}
 
             {dripMode === 'PREREQUISITE' && (
-              <FormField>
+              <FormField name={`prerequisite_activity_id_${activity.activity_uuid}`}>
                 <FormLabelAndMessage label="Prerequisite Activity" message="" />
                 <select
                   value={config.prerequisite_activity_id || ''}
