@@ -14,6 +14,11 @@ if [ -n "$LEARNHOUSE_SQL_CONNECTION_STRING" ]; then
     fi
 fi
 
+# Run database migrations before starting the API
+echo "Running database migrations..."
+cd /app/api
+uv run alembic upgrade head
+
 # Start the services
 # Use server-wrapper.js for runtime environment variable injection
 pm2 start server-wrapper.js --cwd /app/web --name learnhouse-web > /dev/null 2>&1
