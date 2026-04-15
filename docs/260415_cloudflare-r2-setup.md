@@ -1,5 +1,8 @@
 # Cloudflare R2 Setup Guide
 
+**Date**: April 15, 2026  
+**Status**: ✅ Configuration Guide
+
 Panduan lengkap untuk mengkonfigurasi Cloudflare R2 sebagai storage backend untuk media course.
 
 ## Prerequisites
@@ -143,7 +146,7 @@ Jika berhasil, response akan menunjukkan filename di field `thumbnail_image`.
 5. **Monitor R2 usage** di Cloudflare Dashboard
 6. **Setup bucket lifecycle rules** untuk cleanup old files (opsional)
 
-## Farther Reading
+## Further Reading
 
 - [Cloudflare R2 Documentation](https://developers.cloudflare.com/r2/)
 - [R2 API Compatibility](https://developers.cloudflare.com/r2/api/s3/api/)
