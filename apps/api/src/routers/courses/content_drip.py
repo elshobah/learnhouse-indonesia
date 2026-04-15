@@ -12,7 +12,7 @@ from src.db.users import PublicUser
 from src.security.rbac import check_resource_access, AccessAction
 from src.services.courses.content_drip import get_drip_statuses_for_course
 from src.security.auth import get_current_user
-from src.db.database import get_session
+from src.core.events.database import get_db_session
 
 router = APIRouter(prefix="/courses", tags=["content_drip"])
 
@@ -22,7 +22,7 @@ async def get_course_drip_config(
     request: Request,
     course_uuid: str,
     current_user: PublicUser = Depends(get_current_user),
-    db_session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
     """Get the current drip configuration for a course"""
     # Get course
@@ -73,7 +73,7 @@ async def update_course_drip_mode(
     course_uuid: str,
     payload: dict,
     current_user: PublicUser = Depends(get_current_user),
-    db_session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
     """Set or update the drip mode for a course"""
     # Get course
@@ -106,7 +106,7 @@ async def upsert_activity_drip(
     activity_uuid: str,
     payload: dict,
     current_user: PublicUser = Depends(get_current_user),
-    db_session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
     """Create or update drip configuration for a specific activity"""
     # Get course
@@ -179,7 +179,7 @@ async def delete_activity_drip(
     course_uuid: str,
     activity_uuid: str,
     current_user: PublicUser = Depends(get_current_user),
-    db_session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
     """Remove drip configuration from an activity"""
     # Get course
@@ -221,7 +221,7 @@ async def get_course_drip_status(
     request: Request,
     course_uuid: str,
     current_user: PublicUser = Depends(get_current_user),
-    db_session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
     """
     Get drip lock status for all activities in a course for the current user.
