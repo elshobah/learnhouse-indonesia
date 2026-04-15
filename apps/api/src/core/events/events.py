@@ -12,6 +12,7 @@ from src.core.ee_hooks import run_ee_startup
 logger = logging.getLogger(__name__)
 
 _cleanup_task = None
+_payment_expiry_task = None
 
 
 async def _periodic_migration_cleanup():
@@ -23,6 +24,32 @@ async def _periodic_migration_cleanup():
             cleanup_old_temp_migrations()
         except Exception as e:
             logger.warning("Periodic migration cleanup failed: %s", e)
+
+
+async def _periodic_payment_expiry_cleanup():
+    """Expire old pending payment transactions every hour."""
+    from sqlalchemy import create_engine
+    from sqlmodel import Session
+    from src.services.payment_indonesia import expire_old_transactions
+
+    while True:
+        await asyncio.sleep(3600)  # 1 hour
+        try:
+            learnhouse_config = get_learnhouse_config()
+            engine = create_engine(
+                learnhouse_config.database_config.sql_connection_string,
+                echo=False,
+                pool_pre_ping=True,
+            )
+            db_session = Session(engine)
+            try:
+                count = await expire_old_transactions(db_session)
+                if count > 0:
+                    logger.info(f"Expired {count} old payment transactions")
+            finally:
+                db_session.close()
+        except Exception as e:
+            logger.warning("Periodic payment expiry cleanup failed: %s", e)
 
 
 def _reconcile_packs():
@@ -74,6 +101,10 @@ def startup_app(app: FastAPI) -> Callable:
         global _cleanup_task
         _cleanup_task = asyncio.create_task(_periodic_migration_cleanup())
 
+        # Expire old payment transactions (every 1 hour)
+        global _payment_expiry_task
+        _payment_expiry_task = asyncio.create_task(_periodic_payment_expiry_cleanup())
+
         # Start Enterprise Edition Startup tasks if available
         run_ee_startup(app)
 
@@ -84,6 +115,8 @@ def shutdown_app(app: FastAPI) -> Callable:
     async def close_app() -> None:
         if _cleanup_task:
             _cleanup_task.cancel()
+        if _payment_expiry_task:
+            _payment_expiry_task.cancel()
         # Close the webhook httpx client cleanly
         from src.services.webhooks.dispatch import close_webhook_client
         await close_webhook_client()
