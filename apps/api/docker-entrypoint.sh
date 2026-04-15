@@ -72,6 +72,10 @@ HOST=${HOSTNAME:-0.0.0.0}
 
 echo "Starting LearnHouse backend on ${HOST}:${PORT}..."
 
+# Run database migrations
+echo "Running database migrations..."
+uv run alembic upgrade head
+
 # Start the FastAPI application
 exec uv run uvicorn app:app --host "$HOST" --port "$PORT" --timeout-keep-alive 600
 
