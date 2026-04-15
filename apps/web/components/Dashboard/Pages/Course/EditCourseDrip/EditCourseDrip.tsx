@@ -273,7 +273,7 @@ const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid })
   }
 
   return (
-    <FormLayout>
+    <FormLayout onSubmit={(e) => e.preventDefault()}>
       {/* Drip Mode Selection */}
       <FormField>
         <FormLabelAndMessage

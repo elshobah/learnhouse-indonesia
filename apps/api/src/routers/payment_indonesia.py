@@ -36,7 +36,7 @@ router = APIRouter(prefix="/payment-id", tags=["payment-indonesia"])
 
 @router.post("/create", response_model=ManualTransactionRead)
 async def create_transaction(
-    org_id: int = Path(..., description="Organization ID"),
+    org_id: int,
     student_user_id: str = Query(..., description="Student User ID"),
     course_id: str = Query(..., description="Course ID"),
     course_price: int = Query(..., description="Course price in IDR"),
@@ -62,7 +62,7 @@ async def create_transaction(
 @router.get("/{transaction_id}", response_model=ManualTransactionRead)
 async def get_transaction_status(
     transaction_id: str,
-    org_id: int = Path(..., description="Organization ID"),
+    org_id: int,
     db_session: Session = Depends(get_db_session),
 ):
     """
@@ -84,7 +84,7 @@ async def get_transaction_status(
 @router.get("/pending", response_model=dict, dependencies=[Depends(require_org_admin)])
 async def list_pending_transactions(
     request: Request,
-    org_id: int = Path(..., description="Organization ID"),
+    org_id: int,
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     current_user: PublicUser = Depends(get_current_user),
@@ -114,7 +114,7 @@ async def list_pending_transactions(
 @router.post("/{transaction_id}/verify", response_model=ManualTransactionRead, dependencies=[Depends(require_org_admin)])
 async def verify_transaction(
     request: Request,
-    org_id: int = Path(..., description="Organization ID"),
+    org_id: int,
     transaction_id: str = Path(..., description="Transaction ID"),
     proof_image_url: Optional[str] = Query(None, description="Optional proof image URL"),
     current_user: PublicUser = Depends(get_current_user),
@@ -138,7 +138,7 @@ async def verify_transaction(
 @router.post("/{transaction_id}/reject", response_model=ManualTransactionRead, dependencies=[Depends(require_org_admin)])
 async def reject_transaction(
     request: Request,
-    org_id: int = Path(..., description="Organization ID"),
+    org_id: int,
     transaction_id: str = Path(..., description="Transaction ID"),
     reason: str = Query(..., description="Rejection reason"),
     current_user: PublicUser = Depends(get_current_user),
@@ -166,7 +166,7 @@ async def reject_transaction(
 @router.get("/config", response_model=Optional[OrgPaymentConfigRead], dependencies=[Depends(require_org_admin)])
 async def get_payment_config(
     request: Request,
-    org_id: int = Path(..., description="Organization ID"),
+    org_id: int,
     current_user: PublicUser = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
 ):
@@ -191,7 +191,7 @@ async def get_payment_config(
 @router.put("/config", response_model=OrgPaymentConfigRead, dependencies=[Depends(require_org_admin)])
 async def update_payment_config(
     request: Request,
-    org_id: int = Path(..., description="Organization ID"),
+    org_id: int,
     config_data: OrgPaymentConfigUpdate = ...,
     current_user: PublicUser = Depends(get_current_user),
     db_session: Session = Depends(get_db_session),
