@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@components/Contexts/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle, CheckCircle2, Clock, Copy, QrCode, Loader2 } from 'lucide-react'
 
@@ -39,7 +39,7 @@ interface OrgPaymentConfig {
 
 export default function PaymentPage() {
   const params = useParams()
-  const { data: session } = useSession()
+  const { data: session } = useAuth()
   const { t } = useTranslation('common')
 
   const orgslug = params.orgslug as string
