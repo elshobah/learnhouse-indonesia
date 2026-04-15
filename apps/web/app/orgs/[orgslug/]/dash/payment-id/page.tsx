@@ -43,7 +43,7 @@ interface PendingTransactionsResponse {
 
 export default function PaymentAdminDashboard() {
   const params = useParams()
-  const { data: session } = useAuth()
+  const { session } = useAuth()
   const { t } = useTranslation('common')
 
   const orgslug = params.orgslug as string
