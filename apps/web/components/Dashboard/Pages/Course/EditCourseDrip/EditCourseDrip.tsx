@@ -275,7 +275,7 @@ const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid })
   return (
     <FormLayout onSubmit={(e) => e.preventDefault()}>
       {/* Drip Mode Selection */}
-      <FormField>
+      <FormField name="dripMode">
         <FormLabelAndMessage
           label="Content Drip Mode"
           message="Choose how to gradually release course content to students"
