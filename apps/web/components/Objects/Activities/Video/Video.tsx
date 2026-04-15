@@ -31,6 +31,7 @@ function VideoActivity({ activity, course, orgUuid }: VideoActivityProps) {
   const org = useOrg() as any
   const resolvedOrgUuid = orgUuid || org?.org_uuid
   const [videoId, setVideoId] = React.useState('')
+  const [overlayWidth, setOverlayWidth] = React.useState('70%')
 
   React.useEffect(() => {
     if (activity?.content?.uri) {
@@ -38,6 +39,23 @@ function VideoActivity({ activity, course, orgUuid }: VideoActivityProps) {
       setVideoId(getYouTubeID(activity.content.uri))
     }
   }, [activity, org])
+
+  // Responsive overlay width based on screen size
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setOverlayWidth('100%') // Mobile: full width
+      } else if (window.innerWidth < 1024) {
+        setOverlayWidth('75%') // Tablet: 75%
+      } else {
+        setOverlayWidth('70%') // Desktop: 70%
+      }
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const getVideoSrc = () => {
     if (!activity.content?.filename) return ''
@@ -99,7 +117,7 @@ function VideoActivity({ activity, course, orgUuid }: VideoActivityProps) {
                     }
                   }}
                 />
-                {/* Protection overlay covering YouTube title and channel (top area) */}
+                {/* Protection overlay covering YouTube title and channel (left side only, responsive) */}
                 <div
                   aria-hidden="true"
                   onContextMenu={(e) => e.preventDefault()}
@@ -108,8 +126,8 @@ function VideoActivity({ activity, course, orgUuid }: VideoActivityProps) {
                     position: 'absolute',
                     top: 0,
                     left: 0,
-                    right: 0,
-                    height: '100px',
+                    width: overlayWidth,
+                    height: '90px',
                     zIndex: 10,
                     cursor: 'default',
                     pointerEvents: 'auto',

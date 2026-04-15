@@ -46,11 +46,12 @@ const getYouTubeEmbedUrl = (url: string): string => {
 };
 
 // Memoized component for the embed content
-const MemoizedEmbed = React.memo(({ embedUrl, sanitizedEmbedCode, embedType, isEditable }: {
+const MemoizedEmbed = React.memo(({ embedUrl, sanitizedEmbedCode, embedType, isEditable, overlayWidth }: {
   embedUrl: string;
   sanitizedEmbedCode: string;
   embedType: 'url' | 'code';
   isEditable: boolean;
+  overlayWidth: string;
 }) => {
   useEffect(() => {
     if (embedType === 'code' && sanitizedEmbedCode) {
@@ -100,7 +101,7 @@ const MemoizedEmbed = React.memo(({ embedUrl, sanitizedEmbedCode, embedType, isE
             className="w-full h-full rounded-lg"
             frameBorder="0"
           />
-          {/* Protection overlay covering YouTube title and channel (top area) */}
+          {/* Protection overlay covering YouTube title and channel (left side only, responsive) */}
           <div
             aria-hidden="true"
             onContextMenu={(e) => e.preventDefault()}
@@ -109,8 +110,8 @@ const MemoizedEmbed = React.memo(({ embedUrl, sanitizedEmbedCode, embedType, isE
               position: 'absolute',
               top: 0,
               left: 0,
-              right: 0,
-              height: '100px',
+              width: overlayWidth,
+              height: '90px',
               zIndex: 10,
               cursor: 'default',
               pointerEvents: 'auto',
@@ -165,6 +166,7 @@ function EmbedObjectsComponent(props: any) {
   const [isResizing, setIsResizing] = useState(false)
   const [parentWidth, setParentWidth] = useState<number | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+  const [overlayWidth, setOverlayWidth] = useState('70%')
 
   const resizeRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -205,6 +207,23 @@ function EmbedObjectsComponent(props: any) {
       resizeObserver.disconnect();
     };
   }, []);
+
+  // Responsive overlay width based on screen size for YouTube protection
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setOverlayWidth('100%') // Mobile: full width
+      } else if (window.innerWidth < 1024) {
+        setOverlayWidth('75%') // Tablet: 75%
+      } else {
+        setOverlayWidth('70%') // Desktop: 70%
+      }
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const supportedProducts = [
     { name: 'YouTube', icon: SiYoutube, color: '#FF0000', guide: 'https://support.google.com/youtube/answer/171780?hl=en' },
@@ -354,11 +373,12 @@ function EmbedObjectsComponent(props: any) {
         sanitizedEmbedCode={sanitizedEmbedCode}
         embedType={embedType}
         isEditable={isEditable}
+        overlayWidth={overlayWidth}
       />
     ) : (
       <div className="w-full h-full bg-neutral-100 rounded-lg" />
     )
-  ), [embedUrl, sanitizedEmbedCode, embedType, isResizing, isEditable]);
+  ), [embedUrl, sanitizedEmbedCode, embedType, isResizing, isEditable, overlayWidth]);
 
   const [activeInput, setActiveInput] = useState<'none' | 'url' | 'code'>('none');
   const [selectedProduct, setSelectedProduct] = useState<typeof supportedProducts[0] | null>(null);
