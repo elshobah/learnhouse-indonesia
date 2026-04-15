@@ -11,7 +11,7 @@ from src.db.courses.content_drip import ContentDrip, ContentDripCreate, ContentD
 from src.db.users import PublicUser
 from src.security.rbac import check_resource_access, AccessAction
 from src.services.courses.content_drip import get_drip_statuses_for_course
-from src.auth.dependencies import get_current_user
+from src.security.auth import get_current_user
 from src.db.database import get_session
 
 router = APIRouter(prefix="/courses", tags=["content_drip"])
