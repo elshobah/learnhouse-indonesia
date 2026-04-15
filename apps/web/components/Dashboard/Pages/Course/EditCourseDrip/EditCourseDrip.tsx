@@ -39,7 +39,7 @@ interface Chapter {
 const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid }) => {
   const { t } = useTranslation();
   const { accessToken } = useAuth();
-  const { course } = useCourseFieldSync();
+  const { courseStructure } = useCourseFieldSync('EditCourseDrip');
   const [dripMode, setDripMode] = useState<string | null>(null);
   const [expandedActivities, setExpandedActivities] = useState<Set<string>>(new Set());
   const [activityConfigs, setActivityConfigs] = useState<Record<string, any>>({});
@@ -55,10 +55,10 @@ const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid })
 
   // Load course structure from context to build chapters/activities list
   useEffect(() => {
-    if (course?.chapters) {
-      setChapters(course.chapters as any);
+    if (courseStructure?.chapters) {
+      setChapters(courseStructure.chapters as any);
       const allActs: Activity[] = [];
-      course.chapters.forEach((chapter: any) => {
+      courseStructure.chapters.forEach((chapter: any) => {
         if (chapter.activities) {
           allActs.push(
             ...chapter.activities.map((act: any) => ({
@@ -70,7 +70,7 @@ const EditCourseDrip: React.FC<EditCourseDripProps> = ({ orgslug, course_uuid })
       });
       setAllActivities(allActs);
     }
-  }, [course]);
+  }, [courseStructure]);
 
   // Load drip config from API
   useEffect(() => {
