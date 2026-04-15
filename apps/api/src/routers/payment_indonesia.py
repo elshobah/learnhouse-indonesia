@@ -9,7 +9,7 @@ Endpoints for:
 """
 
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlmodel import Session
 
 from src.db.payment_indonesia import (
@@ -20,7 +20,10 @@ from src.db.payment_indonesia import (
     ManualTransactionRead,
     PaymentMethod,
 )
+from src.db.users import PublicUser
 from src.core.database import get_session
+from src.security.auth import get_current_user
+from src.security.features_utils.dependencies import require_org_admin
 from src.services import payment_indonesia as payment_service
 
 
@@ -78,17 +81,20 @@ async def get_transaction_status(
 # Admin Endpoints
 # ============================================================================
 
-@router.get("/pending", response_model=dict)
+@router.get("/pending", response_model=dict, dependencies=[Depends(require_org_admin)])
 async def list_pending_transactions(
+    request: Request,
     org_id: int = Query(..., description="Organization ID"),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    current_user: PublicUser = Depends(get_current_user),
     db_session: Session = Depends(get_session),
 ):
     """
     List all pending payment transactions for an organization.
 
     Admin dashboard uses this to see transactions awaiting verification.
+    Requires organization admin role.
     """
     transactions, total = await payment_service.list_pending_transactions(
         db_session=db_session,
@@ -105,46 +111,50 @@ async def list_pending_transactions(
     }
 
 
-@router.post("/{transaction_id}/verify", response_model=ManualTransactionRead)
+@router.post("/{transaction_id}/verify", response_model=ManualTransactionRead, dependencies=[Depends(require_org_admin)])
 async def verify_transaction(
+    request: Request,
     transaction_id: str,
     org_id: int = Query(..., description="Organization ID"),
-    admin_user_id: str = Query(..., description="Admin User ID"),
     proof_image_url: Optional[str] = Query(None, description="Optional proof image URL"),
+    current_user: PublicUser = Depends(get_current_user),
     db_session: Session = Depends(get_session),
 ):
     """
     Admin verifies a payment transaction.
 
     Marks transaction as VERIFIED and triggers enrollment creation.
+    Requires organization admin role.
     """
     return await payment_service.verify_transaction(
         db_session=db_session,
         transaction_id=transaction_id,
         org_id=org_id,
-        admin_user_id=admin_user_id,
+        admin_user_id=str(current_user.id),
         proof_image_url=proof_image_url,
     )
 
 
-@router.post("/{transaction_id}/reject", response_model=ManualTransactionRead)
+@router.post("/{transaction_id}/reject", response_model=ManualTransactionRead, dependencies=[Depends(require_org_admin)])
 async def reject_transaction(
+    request: Request,
     transaction_id: str,
     org_id: int = Query(..., description="Organization ID"),
-    admin_user_id: str = Query(..., description="Admin User ID"),
     reason: str = Query(..., description="Rejection reason"),
+    current_user: PublicUser = Depends(get_current_user),
     db_session: Session = Depends(get_session),
 ):
     """
     Admin rejects a payment transaction.
 
     Marks transaction as REJECTED with reason. Student can create new transaction.
+    Requires organization admin role.
     """
     return await payment_service.reject_transaction(
         db_session=db_session,
         transaction_id=transaction_id,
         org_id=org_id,
-        admin_user_id=admin_user_id,
+        admin_user_id=str(current_user.id),
         reason=reason,
     )
 
@@ -153,15 +163,18 @@ async def reject_transaction(
 # Configuration Endpoints (Admin)
 # ============================================================================
 
-@router.get("/config", response_model=Optional[OrgPaymentConfigRead])
+@router.get("/config", response_model=Optional[OrgPaymentConfigRead], dependencies=[Depends(require_org_admin)])
 async def get_payment_config(
+    request: Request,
     org_id: int = Query(..., description="Organization ID"),
+    current_user: PublicUser = Depends(get_current_user),
     db_session: Session = Depends(get_session),
 ):
     """
     Get payment configuration for an organization.
 
     Admin views bank/QRIS account details.
+    Requires organization admin role.
     """
     from sqlmodel import select
 
@@ -175,16 +188,19 @@ async def get_payment_config(
     return OrgPaymentConfigRead.from_orm(config)
 
 
-@router.put("/config", response_model=OrgPaymentConfigRead)
+@router.put("/config", response_model=OrgPaymentConfigRead, dependencies=[Depends(require_org_admin)])
 async def update_payment_config(
+    request: Request,
     org_id: int = Query(..., description="Organization ID"),
     config_data: OrgPaymentConfigUpdate = ...,
+    current_user: PublicUser = Depends(get_current_user),
     db_session: Session = Depends(get_session),
 ):
     """
     Update or create payment configuration for an organization.
 
     Admin sets up bank account and QRIS details.
+    Requires organization admin role.
     """
     from sqlmodel import select
     from datetime import datetime
