@@ -23,6 +23,8 @@ import ConfirmationModal from '@components/Objects/StyledElements/ConfirmationMo
 import Modal from '@components/Objects/StyledElements/Modal/Modal'
 import { useMediaQuery, useWindowSize } from 'usehooks-ts'
 import PaidCourseActivityDisclaimer from '@components/Objects/Courses/CourseActions/PaidCourseActivityDisclaimer'
+import DripLockedView from '@components/Pages/Activity/DripLockedView'
+import { getCourseDripStatus } from '@/services/courses/drip'
 import { useContributorStatus } from '../../../../../../../../hooks/useContributorStatus'
 import ToolTip from '@components/Objects/StyledElements/Tooltip/Tooltip'
 import ActivityChapterDropdown from '@components/Pages/Activity/ActivityChapterDropdown'
@@ -228,6 +230,19 @@ function ActivityClient(props: ActivityClientProps) {
     (url) => swrFetcher(url, access_token),
     { revalidateOnFocus: false, dedupingInterval: 30000 }
   )
+
+  // Add SWR for drip status (content drip locking)
+  const { data: dripStatusData } = useSWR(
+    course && course.course_uuid && access_token
+      ? [course.course_uuid, access_token]
+      : null,
+    ([courseUuid, token]) => getCourseDripStatus(courseUuid, token),
+    { revalidateOnFocus: false, dedupingInterval: 30000 }
+  );
+
+  // Check if activity is locked by drip
+  const activityDripStatus = dripStatusData?.activities?.[activity?.activity_uuid];
+  const isActivityLocked = activityDripStatus?.is_locked;
 
   // Memoize activity position calculation
   const { allActivities, currentIndex } = useActivityPosition(course, activityid);
@@ -508,7 +523,14 @@ function ActivityClient(props: ActivityClientProps) {
                     <div className="container mx-auto px-4">
                       {activity && activity.published == true && (
                         <>
-                          {activity.content.paid_access == false ? (
+                          {isActivityLocked ? (
+                            <DripLockedView
+                              activityName={activity.name}
+                              courseSlug={orgslug}
+                              courseUuid={courseuuid}
+                              dripStatus={activityDripStatus}
+                            />
+                          ) : activity.content.paid_access == false ? (
                             <PaidCourseActivityDisclaimer course={course} />
                           ) : (
                             <motion.div

@@ -14,6 +14,7 @@ import logging
 from src.core.ee_hooks import check_ee_activity_paid_access
 from src.security.rbac import check_resource_access, AccessAction
 from src.services.courses.activities.versioning import create_activity_version
+from src.services.courses.content_drip import get_drip_status
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +122,21 @@ async def get_activity(
 
     # RBAC check
     await check_resource_access(request, db_session, current_user, course.course_uuid, AccessAction.READ)
+
+    # Content drip check — enforce drip lock at API level
+    if course.drip_mode:
+        drip_status = await get_drip_status(
+            activity.id,
+            course.id,
+            current_user.id if current_user.id else 0,
+            course.drip_mode,
+            db_session,
+        )
+        if drip_status.get("is_locked", False):
+            raise HTTPException(
+                status_code=403,
+                detail=f"Content is drip-locked: {drip_status.get('reason', 'Not available yet')}"
+            )
 
     # Paid access check (via EE hook with fallback to True if EE not available)
     has_paid_access = await check_ee_activity_paid_access(

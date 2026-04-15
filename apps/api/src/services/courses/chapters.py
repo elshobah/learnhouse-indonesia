@@ -16,6 +16,7 @@ from src.db.courses.chapters import (
 from src.db.courses.courses import Course
 from fastapi import HTTPException, status, Request
 from src.security.rbac import check_resource_access, AccessAction
+from src.services.courses.content_drip import get_drip_statuses_for_course
 
 
 ####################################################
@@ -336,6 +337,24 @@ async def get_course_chapters(
 
         for chapter in chapters:
             chapter.activities = chapter_activities_map.get(chapter.id, [])
+
+    # Add drip status for each activity if drip_mode is enabled
+    if course and course.drip_mode:
+        all_activity_ids = [act.id for chapter in chapters for act in chapter.activities]
+        if all_activity_ids:
+            user_id = current_user.id if isinstance(current_user, PublicUser) else None
+            if user_id:
+                drip_statuses = await get_drip_statuses_for_course(
+                    all_activity_ids,
+                    course_id,
+                    user_id,
+                    course.drip_mode,
+                    db_session,
+                )
+                # Attach drip_status to each activity
+                for chapter in chapters:
+                    for activity in chapter.activities:
+                        activity.drip_status = drip_statuses.get(activity.id, {"is_locked": False, "available_at": None, "reason": ""})
 
     return chapters
 

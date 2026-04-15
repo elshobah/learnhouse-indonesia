@@ -24,6 +24,8 @@ import { useTranslation } from 'react-i18next'
 import CourseCommunitySection from '@components/Objects/Communities/CourseCommunitySection'
 import CourseShare from '@components/Objects/Courses/CourseShare/CourseShare'
 import { useAnalytics } from '@/hooks/useAnalytics'
+import LockedActivity from '@components/Objects/Courses/LockedActivity'
+import { getCourseDripStatus } from '@/services/courses/drip'
 
 const CourseClient = (props: any) => {
   const { t } = useTranslation()
@@ -70,6 +72,15 @@ const CourseClient = (props: any) => {
   const { data: trailData } = useSWR(
     `${getAPIUrl()}trail/org/${org?.id}/trail`,
     (url) => swrFetcher(url, access_token),
+    { revalidateOnFocus: false, dedupingInterval: 30000 }
+  );
+
+  // Add SWR for drip status (content drip locking)
+  const { data: dripStatusData } = useSWR(
+    course && course.course_uuid && access_token
+      ? [course.course_uuid, access_token]
+      : null,
+    ([courseUuid, token]) => getCourseDripStatus(courseUuid, token),
     { revalidateOnFocus: false, dedupingInterval: 30000 }
   );
 
@@ -492,6 +503,23 @@ const CourseClient = (props: any) => {
                       <div className={`transition-all duration-200 ${isExpanded ? 'block' : 'hidden'}`}>
                         <div className="">
                           {chapter.activities.map((activity: any) => {
+                            // Check drip status for this activity
+                            const dripStatus = dripStatusData?.activities?.[activity.activity_uuid];
+                            const isLocked = dripStatus?.is_locked;
+
+                            // If activity is locked, show LockedActivity instead of Link
+                            if (isLocked) {
+                              return (
+                                <div key={activity.activity_uuid} className="px-4 py-2">
+                                  <LockedActivity
+                                    activity={activity}
+                                    dripStatus={dripStatus}
+                                  />
+                                </div>
+                              );
+                            }
+
+                            // Otherwise, show normal activity link
                             return (
                               <Link
                                 key={activity.activity_uuid}

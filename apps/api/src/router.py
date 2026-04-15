@@ -19,6 +19,7 @@ from src.routers.orgs import custom_domains
 from src.routers.orgs import packs
 from src.routers.courses import chapters, collections, courses, assignments, certifications
 from src.routers.courses import migration as migration_router_module
+from src.routers.courses import content_drip
 from src.routers.communities import communities as communities_router_module
 from src.routers.communities import discussions as discussions_router_module
 from src.routers.courses.activities import activities, blocks
@@ -138,6 +139,11 @@ v1_router.include_router(
     migration_router_module.router,
     prefix="/courses",
     tags=["migration"],
+    dependencies=[Depends(get_non_api_token_user)]
+)
+v1_router.include_router(
+    content_drip.router,
+    tags=["content_drip"],
     dependencies=[Depends(get_non_api_token_user)]
 )
 v1_router.include_router(search.router, prefix="/search", tags=["search"])

@@ -93,3 +93,5 @@ class ActivityRead(ActivityBase):
     current_version: int = 1
     last_modified_by_id: Optional[int] = None
     last_modified_by_username: Optional[str] = None
+    # Drip status (populated by ContentDripService; None = no drip)
+    drip_status: Optional[dict] = Field(default=None, description="Drip lock status: {is_locked, available_at, reason}")

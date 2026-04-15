@@ -37,6 +37,14 @@ class ThumbnailType(str, Enum):
     BOTH = "both"
 
 
+class DripModeEnum(str, Enum):
+    """Content drip modes for scheduled course content release"""
+    BY_DATE = "BY_DATE"
+    DAYS_AFTER_ENROLLMENT = "DAYS_AFTER_ENROLLMENT"
+    SEQUENTIAL = "SEQUENTIAL"
+    PREREQUISITE = "PREREQUISITE"
+
+
 class AuthorWithRole(SQLModel):
     user: UserRead
     authorship: ResourceAuthorshipEnum
@@ -57,6 +65,7 @@ class CourseBase(SQLModel):
     public: bool
     published: bool = Field(default=False)
     open_to_contributors: bool
+    drip_mode: Optional[DripModeEnum] = Field(default=None, description="Content drip mode for this course")
 
 
 class Course(CourseBase, table=True):
@@ -95,6 +104,7 @@ class CourseUpdate(SQLModel):
     published: Optional[bool] = None
     open_to_contributors: Optional[bool] = None
     seo: Optional[dict] = None
+    drip_mode: Optional[DripModeEnum] = None
 
 
 class CourseRead(CourseBase):
