@@ -7,7 +7,7 @@ from src.routers import health
 from src.routers import instance
 from src.routers import plans
 from src.routers import usergroups
-from src.routers import dev, trail, users, auth, orgs, roles, search
+from src.routers import dev, trail, users, auth, orgs, roles, search, payment_indonesia
 from src.routers import stream
 from src.routers import api_tokens
 from src.routers import webhooks
@@ -297,4 +297,11 @@ v1_router.include_router(
     prefix="/stream",
     tags=["stream"],
     dependencies=[Depends(get_non_api_token_user)]
+)
+
+# Payment Indonesia Routes
+v1_router.include_router(
+    payment_indonesia.router,
+    prefix="/orgs/{org_id}",
+    tags=["payment-indonesia"],
 )
