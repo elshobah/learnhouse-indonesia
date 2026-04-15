@@ -92,8 +92,17 @@ async def get_drip_statuses_for_course(
 
 async def _is_admin_or_author(course_id: int, user_id: int, db_session: Session) -> bool:
     """Check if user is admin/author of the course"""
+    from src.db.courses.courses import Course
+
+    # First get the course_uuid from course_id
+    stmt = select(Course).where(Course.id == course_id)
+    course = db_session.exec(stmt).first()
+    if not course:
+        return False
+
+    # Now query ResourceAuthor with correct resource_uuid format
     stmt = select(ResourceAuthor).where(
-        ResourceAuthor.resource_uuid.like(f"course_{course_id}%"),
+        ResourceAuthor.resource_uuid == course.course_uuid,
         ResourceAuthor.user_id == user_id,
         ResourceAuthor.authorship.in_([ResourceAuthorshipEnum.CREATOR, ResourceAuthorshipEnum.MAINTAINER]),
         ResourceAuthor.authorship_status == ResourceAuthorshipStatusEnum.ACTIVE,
