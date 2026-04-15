@@ -21,7 +21,7 @@ from src.db.payment_indonesia import (
     PaymentMethod,
 )
 from src.db.users import PublicUser
-from src.core.database import get_session
+from src.core.events.database import get_db_session
 from src.security.auth import get_current_user
 from src.security.features_utils.dependencies import require_org_admin
 from src.services import payment_indonesia as payment_service
@@ -41,7 +41,7 @@ async def create_transaction(
     course_id: str = Query(..., description="Course ID"),
     course_price: int = Query(..., description="Course price in IDR"),
     payment_method: PaymentMethod = Query(..., description="Payment method: transfer or qris"),
-    db_session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
     """
     Create a new payment transaction.
@@ -63,7 +63,7 @@ async def create_transaction(
 async def get_transaction_status(
     transaction_id: str,
     org_id: int = Query(..., description="Organization ID"),
-    db_session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
     """
     Get the status of a payment transaction.
@@ -88,7 +88,7 @@ async def list_pending_transactions(
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     current_user: PublicUser = Depends(get_current_user),
-    db_session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
     """
     List all pending payment transactions for an organization.
@@ -118,7 +118,7 @@ async def verify_transaction(
     org_id: int = Query(..., description="Organization ID"),
     proof_image_url: Optional[str] = Query(None, description="Optional proof image URL"),
     current_user: PublicUser = Depends(get_current_user),
-    db_session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
     """
     Admin verifies a payment transaction.
@@ -142,7 +142,7 @@ async def reject_transaction(
     org_id: int = Query(..., description="Organization ID"),
     reason: str = Query(..., description="Rejection reason"),
     current_user: PublicUser = Depends(get_current_user),
-    db_session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
     """
     Admin rejects a payment transaction.
@@ -168,7 +168,7 @@ async def get_payment_config(
     request: Request,
     org_id: int = Query(..., description="Organization ID"),
     current_user: PublicUser = Depends(get_current_user),
-    db_session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
     """
     Get payment configuration for an organization.
@@ -194,7 +194,7 @@ async def update_payment_config(
     org_id: int = Query(..., description="Organization ID"),
     config_data: OrgPaymentConfigUpdate = ...,
     current_user: PublicUser = Depends(get_current_user),
-    db_session: Session = Depends(get_session),
+    db_session: Session = Depends(get_db_session),
 ):
     """
     Update or create payment configuration for an organization.
