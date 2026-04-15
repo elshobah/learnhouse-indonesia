@@ -28,6 +28,9 @@ hosting_config:
     s3api:
       bucket_name: ""
       endpoint_url: ""
+      access_key_id: ""  # Set via LEARNHOUSE_S3_API_ACCESS_KEY_ID env var
+      secret_access_key: ""  # Set via LEARNHOUSE_S3_API_SECRET_ACCESS_KEY env var
+      public_url_domain: ""  # Custom domain for serving files (e.g., https://lmsmedia.elshobah.com)
 
 mailing_config:
   email_provider: "resend" # "resend" or "smtp"

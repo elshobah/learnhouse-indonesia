@@ -10,6 +10,45 @@ from src.security.file_validation import validate_upload
 logger = logging.getLogger(__name__)
 
 
+def get_file_url(
+    directory: str,
+    type_of_dir: str,
+    uuid: str,
+    filename: str,
+) -> str:
+    """
+    Get the public URL for a file stored in S3/R2 or filesystem.
+
+    Args:
+        directory: Directory name (e.g., "logos", "avatars", "course-media")
+        type_of_dir: "orgs" or "users"
+        uuid: Organization or user UUID
+        filename: The filename
+
+    Returns:
+        The public URL for the file
+    """
+    learnhouse_config = get_learnhouse_config()
+    content_delivery = learnhouse_config.hosting_config.content_delivery.type
+
+    relative_path = f"content/{type_of_dir}/{uuid}/{directory}/{filename}"
+
+    if content_delivery == "filesystem":
+        # Return relative filesystem path (served by the app)
+        return f"/files/{relative_path}"
+    elif content_delivery == "s3api":
+        s3_config = learnhouse_config.hosting_config.content_delivery.s3api
+
+        # If custom public domain is configured, use it; otherwise use endpoint URL
+        if s3_config.public_url_domain:
+            return f"{s3_config.public_url_domain}/{relative_path}"
+        else:
+            # Fallback to endpoint URL + key
+            return f"{s3_config.endpoint_url}/{s3_config.bucket_name or 'learnhouse-media'}/{relative_path}"
+
+    return relative_path
+
+
 def ensure_directory_exists(directory: str):
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -97,12 +136,24 @@ async def upload_content(
             f.close()
 
     elif content_delivery == "s3api":
+        s3_config = learnhouse_config.hosting_config.content_delivery.s3api
+
+        # Validate required S3 configuration
+        if not s3_config.endpoint_url:
+            raise HTTPException(status_code=500, detail="S3 endpoint URL is not configured")
+        if not s3_config.access_key_id or not s3_config.secret_access_key:
+            raise HTTPException(status_code=500, detail="S3 credentials are not configured")
+
+        # Create S3 client with credentials
         s3 = boto3.client(
             "s3",
-            endpoint_url=learnhouse_config.hosting_config.content_delivery.s3api.endpoint_url,
+            endpoint_url=s3_config.endpoint_url,
+            aws_access_key_id=s3_config.access_key_id,
+            aws_secret_access_key=s3_config.secret_access_key,
+            region_name="auto",  # For Cloudflare R2
         )
 
-        bucket_name = learnhouse_config.hosting_config.content_delivery.s3api.bucket_name or "learnhouse-media"
+        bucket_name = s3_config.bucket_name or "learnhouse-media"
         local_path = f"content/{type_of_dir}/{uuid}/{directory}/{file_and_format}"
         s3_key = local_path
 
