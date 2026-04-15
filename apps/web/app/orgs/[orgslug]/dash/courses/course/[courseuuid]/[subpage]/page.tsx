@@ -222,7 +222,7 @@ function CourseOverviewPage(props: { params: Promise<CourseOverviewParams> }) {
               <div className="h-6" />
             ) : null}
             {params.subpage == 'drip' && hasPermission('update_content') ? (
-              <EditCourseDrip orgslug={params.orgslug} course_uuid={params.courseuuid} />
+              <EditCourseDrip orgslug={params.orgslug} course_uuid={courseuuid} />
             ) : null}
             {params.subpage == 'general' && hasPermission('update') ? (
               <EditCourseGeneral orgslug={params.orgslug} />
