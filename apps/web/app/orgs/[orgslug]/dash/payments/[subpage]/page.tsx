@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import { Breadcrumbs } from '@components/Objects/Breadcrumbs/Breadcrumbs'
 import Link from 'next/link'
 import { getUriWithOrg } from '@services/config/config'
-import { Settings, Users, Gem, CreditCard, Layers, ShoppingBag, ExternalLink } from 'lucide-react'
+import { Settings, Users, Gem, CreditCard, Layers, ShoppingBag, ExternalLink, Landmark } from 'lucide-react'
 import { SiStripe } from '@icons-pack/react-simple-icons'
 import { useLHSession } from '@components/Contexts/LHSessionContext'
 import { useOrg } from '@components/Contexts/OrgContext'
@@ -12,6 +12,7 @@ import PaymentsConfigurationPage from '@components/Dashboard/Pages/Payments/Paym
 import PaymentsCustomersPage from '@components/Dashboard/Pages/Payments/PaymentsCustomersPage'
 import PaymentsOffersPage from '@components/Dashboard/Pages/Payments/PaymentsOffersPage'
 import PaymentsGroupsPage from '@components/Dashboard/Pages/Payments/PaymentsGroupsPage'
+import PaymentsManualPage from '@components/Dashboard/Pages/Payments/PaymentsManualPage'
 import PlanRestrictedFeature from '@components/Dashboard/Shared/PlanRestricted/PlanRestrictedFeature'
 import FeatureDisabledView from '@components/Dashboard/Shared/FeatureDisabled/FeatureDisabledView'
 import { PlanLevel } from '@services/plans/plans'
@@ -52,6 +53,11 @@ function PaymentsPage(props: { params: Promise<PaymentsParams> }) {
         return {
           h1: 'Payment Configuration',
           h2: 'Set up and manage your payment gateway'
+        }
+      case 'manual':
+        return {
+          h1: 'Manual Payment',
+          h2: 'Transfer bank & QRIS - Konfigurasi dan verifikasi transaksi'
         }
       default:
         return {
@@ -156,6 +162,12 @@ function PaymentsPage(props: { params: Promise<PaymentsParams> }) {
             label="Configuration"
             isActive={subpage === 'configuration'}
           />
+          <TabLink
+            href={getUriWithOrg(params.orgslug, '/dash/payments/manual')}
+            icon={<Landmark size={16} />}
+            label="Manual Payment"
+            isActive={subpage === 'manual'}
+          />
         </div>
       </div>
       <div className="h-6 flex-shrink-0"></div>
@@ -169,6 +181,7 @@ function PaymentsPage(props: { params: Promise<PaymentsParams> }) {
         {subpage === 'configuration' && <PaymentsConfigurationPage />}
         {subpage === 'offers' && <PaymentsOffersPage />}
         {subpage === 'groups' && <PaymentsGroupsPage />}
+        {subpage === 'manual' && <PaymentsManualPage />}
         {(subpage === 'overview' || subpage === 'customers') && <PaymentsCustomersPage />}
       </motion.div>
     </div>
