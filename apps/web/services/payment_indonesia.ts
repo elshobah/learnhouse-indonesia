@@ -199,7 +199,7 @@ export async function getPaymentConfig(
   accessToken: string | null,
   options: FetchOptions = {}
 ) {
-  const response = await fetch(`${getPaymentAPIUrl()}/api/v1/orgs/${orgId}/payment-id/config`, {
+  const response = await fetch(`${getAPIUrl()}orgs/${orgId}/payment-id/config`, {
     headers: {
       ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
     },
@@ -228,7 +228,7 @@ export async function updatePaymentConfig(
   },
   accessToken: string | null = null
 ) {
-  const response = await fetch(`${getPaymentAPIUrl()}/api/v1/orgs/${orgId}/payment-id/config`, {
+  const response = await fetch(`${getAPIUrl()}orgs/${orgId}/payment-id/config`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
