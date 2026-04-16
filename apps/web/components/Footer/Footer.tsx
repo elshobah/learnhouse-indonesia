@@ -22,7 +22,7 @@ const Footer: React.FC = () => {
   return (
     <>
       <OrgScripts />
-      <footer className="bg-gray-900 text-gray-300 py-12 mt-20">
+      <footer className="bg-[#0f0f10] text-gray-300 py-12">
         <div className="max-w-7xl mx-auto px-4">
           {/* Main Footer Content */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
@@ -89,7 +89,7 @@ const Footer: React.FC = () => {
                   href="https://github.com/learnhouse-indonesia/learnhouse-indonesia"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded transition text-sm"
+                  className="inline-flex items-center gap-2 px-3 py-2 bg-white/[0.08] hover:bg-white/[0.12] rounded transition text-sm"
                 >
                   <Code className="w-4 h-4" />
                   View Source Code
@@ -99,7 +99,7 @@ const Footer: React.FC = () => {
           </div>
 
           {/* Divider */}
-          <div className="border-t border-gray-800 pt-8">
+          <div className="border-t border-white/[0.08] pt-8">
             {/* Bottom Section */}
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="text-sm text-gray-400 mb-4 md:mb-0">
