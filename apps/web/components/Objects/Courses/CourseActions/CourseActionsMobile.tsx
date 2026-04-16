@@ -33,6 +33,7 @@ interface CourseRun {
 interface Course {
   id: string
   course_uuid: string
+  name: string
   authors: Author[]
   trail?: {
     runs: CourseRun[]
