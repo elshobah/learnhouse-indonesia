@@ -11,6 +11,7 @@ import UserAvatar from '../../UserAvatar'
 import { getUserAvatarMediaDirectory } from '@services/media/media'
 import useSWR from 'swr'
 import Link from 'next/link'
+import PaymentIndonesiaButton from '@components/Payment/PaymentIndonesiaButton'
 
 interface Author {
   user: {
@@ -51,6 +52,7 @@ interface CourseActionsMobileProps {
   orgslug: string
   course: Course & {
     org_id: number
+    price?: number  // Optional course price for Payment Indonesia
   }
   trailData?: any
 }
@@ -297,7 +299,21 @@ const CourseActionsMobile = ({ courseuuid, orgslug, course, trailData }: CourseA
               )}
             </div>
           );
-        })() : (
+        })() : course.price ? (
+          // No Stripe offers but has price → show Payment Indonesia option
+          <div className="space-y-3">
+            <PaymentIndonesiaButton
+              courseId={'course_' + courseuuid}
+              courseName={course.name}
+              coursePrice={course.price}
+              onSuccess={() => {
+                // Refresh enrollment status
+                router.refresh()
+              }}
+              className="w-full py-2"
+            />
+          </div>
+        ) : (
           <button
             onClick={handleCourseAction}
             disabled={isActionLoading}
