@@ -66,6 +66,7 @@ class CourseBase(SQLModel):
     published: bool = Field(default=False)
     open_to_contributors: bool
     drip_mode: Optional[DripModeEnum] = Field(default=None, description="Content drip mode for this course")
+    price: Optional[int] = Field(default=None, description="Course price in IDR (for Payment Indonesia)")
 
 
 class Course(CourseBase, table=True):
@@ -105,6 +106,7 @@ class CourseUpdate(SQLModel):
     open_to_contributors: Optional[bool] = None
     seo: Optional[dict] = None
     drip_mode: Optional[DripModeEnum] = None
+    price: Optional[int] = None
 
 
 class CourseRead(CourseBase):
@@ -118,6 +120,7 @@ class CourseRead(CourseBase):
     thumbnail_image: Optional[str] = Field(default="")
     thumbnail_video: Optional[str] = Field(default="")
     seo: Optional[dict] = None
+    price: Optional[int] = None
     pass
 
 

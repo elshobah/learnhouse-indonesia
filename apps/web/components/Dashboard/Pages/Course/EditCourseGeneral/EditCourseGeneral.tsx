@@ -63,6 +63,15 @@ const validate = (values: any, t: any) => {
     }
   }
 
+  if (values.price !== '' && values.price !== null) {
+    const priceNum = Number(values.price);
+    if (isNaN(priceNum)) {
+      errors.price = t('dashboard.courses.general.form.price_invalid');
+    } else if (priceNum < 0) {
+      errors.price = t('dashboard.courses.general.form.price_positive');
+    }
+  }
+
   return errors;
 };
 
@@ -123,10 +132,11 @@ function EditCourseGeneral(props: EditCourseStructureProps) {
       tags: courseStructure?.tags || '',
       public: courseStructure?.public || false,
       thumbnail_type: thumbnailType,
+      price: courseStructure?.price || '',
     };
   }, [courseStructure?.name, courseStructure?.description, courseStructure?.about,
       courseStructure?.learnings, courseStructure?.tags, courseStructure?.public,
-      courseStructure?.thumbnail_type, initializeLearnings]);
+      courseStructure?.thumbnail_type, courseStructure?.price, initializeLearnings]);
 
   const formik = useFormik({
     initialValues,
@@ -254,6 +264,22 @@ function EditCourseGeneral(props: EditCourseStructureProps) {
                     placeholder={t('dashboard.courses.general.form.tags_placeholder')}
                     onChange={(value) => formik.setFieldValue('tags', value)}
                     value={formik.values.tags}
+                  />
+                </Form.Control>
+              </FormField>
+
+              <FormField name="price">
+                <FormLabelAndMessage label={t('dashboard.courses.general.form.price_label')} message={formik.errors.price} />
+                <Form.Control asChild>
+                  <Input
+                    style={{ backgroundColor: 'white' }}
+                    onChange={formik.handleChange}
+                    value={formik.values.price}
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder={t('dashboard.courses.general.form.price_placeholder')}
+                    disabled={isSaving}
                   />
                 </Form.Control>
               </FormField>
