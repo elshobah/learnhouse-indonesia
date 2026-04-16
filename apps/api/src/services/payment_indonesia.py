@@ -13,6 +13,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 from sqlmodel import Session, select
+from sqlalchemy import func
 from fastapi import HTTPException, status
 
 from src.db.payment_indonesia import (
@@ -325,11 +326,11 @@ async def list_pending_transactions(
     """
     # Get total count
     total = db_session.exec(
-        select(ManualTransaction).where(
+        select(func.count(ManualTransaction.id)).where(
             ManualTransaction.org_id == org_id,
             ManualTransaction.status == TransactionStatus.PENDING,
-        ).with_entities(ManualTransaction.id)
-    ).all().__len__()
+        )
+    ).scalar() or 0
 
     # Get paginated results
     transactions = db_session.exec(
