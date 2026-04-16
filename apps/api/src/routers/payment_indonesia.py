@@ -59,26 +59,8 @@ async def create_transaction(
     )
 
 
-@router.get("/{transaction_id}", response_model=ManualTransactionRead)
-async def get_transaction_status(
-    transaction_id: str = Path(..., description="Transaction ID"),
-    org_id: int = Path(..., description="Organization ID"),
-    db_session: Session = Depends(get_db_session),
-):
-    """
-    Get the status of a payment transaction.
-
-    Student polls this endpoint to check if admin has verified the payment.
-    """
-    return await payment_service.get_transaction(
-        db_session=db_session,
-        transaction_id=transaction_id,
-        org_id=org_id,
-    )
-
-
 # ============================================================================
-# Admin Endpoints
+# Admin Endpoints (STATIC ROUTES BEFORE PARAMETRIC ROUTES)
 # ============================================================================
 
 @router.get("/pending", response_model=dict, dependencies=[Depends(require_org_admin)])
@@ -109,54 +91,6 @@ async def list_pending_transactions(
         "limit": limit,
         "offset": offset,
     }
-
-
-@router.post("/{transaction_id}/verify", response_model=ManualTransactionRead, dependencies=[Depends(require_org_admin)])
-async def verify_transaction(
-    request: Request,
-    org_id: int = Path(..., description="Organization ID"),
-    transaction_id: str = Path(..., description="Transaction ID"),
-    proof_image_url: Optional[str] = Query(None, description="Optional proof image URL"),
-    current_user: PublicUser = Depends(get_current_user),
-    db_session: Session = Depends(get_db_session),
-):
-    """
-    Admin verifies a payment transaction.
-
-    Marks transaction as VERIFIED and triggers enrollment creation.
-    Requires organization admin role.
-    """
-    return await payment_service.verify_transaction(
-        db_session=db_session,
-        transaction_id=transaction_id,
-        org_id=org_id,
-        admin_user_id=str(current_user.id),
-        proof_image_url=proof_image_url,
-    )
-
-
-@router.post("/{transaction_id}/reject", response_model=ManualTransactionRead, dependencies=[Depends(require_org_admin)])
-async def reject_transaction(
-    request: Request,
-    org_id: int = Path(..., description="Organization ID"),
-    transaction_id: str = Path(..., description="Transaction ID"),
-    reason: str = Query(..., description="Rejection reason"),
-    current_user: PublicUser = Depends(get_current_user),
-    db_session: Session = Depends(get_db_session),
-):
-    """
-    Admin rejects a payment transaction.
-
-    Marks transaction as REJECTED with reason. Student can create new transaction.
-    Requires organization admin role.
-    """
-    return await payment_service.reject_transaction(
-        db_session=db_session,
-        transaction_id=transaction_id,
-        org_id=org_id,
-        admin_user_id=str(current_user.id),
-        reason=reason,
-    )
 
 
 # ============================================================================
@@ -237,3 +171,77 @@ async def update_payment_config(
     db_session.refresh(existing_config or config)
 
     return OrgPaymentConfigRead.from_orm(existing_config or config)
+
+
+# ============================================================================
+# Student Endpoints - Parametric Routes (must come AFTER static routes)
+# ============================================================================
+
+@router.get("/{transaction_id}", response_model=ManualTransactionRead)
+async def get_transaction_status(
+    transaction_id: str = Path(..., description="Transaction ID"),
+    org_id: int = Path(..., description="Organization ID"),
+    db_session: Session = Depends(get_db_session),
+):
+    """
+    Get the status of a payment transaction.
+
+    Student polls this endpoint to check if admin has verified the payment.
+    """
+    return await payment_service.get_transaction(
+        db_session=db_session,
+        transaction_id=transaction_id,
+        org_id=org_id,
+    )
+
+
+# ============================================================================
+# Admin Endpoints - Parametric Routes (must come AFTER static routes)
+# ============================================================================
+
+@router.post("/{transaction_id}/verify", response_model=ManualTransactionRead, dependencies=[Depends(require_org_admin)])
+async def verify_transaction(
+    request: Request,
+    org_id: int = Path(..., description="Organization ID"),
+    transaction_id: str = Path(..., description="Transaction ID"),
+    proof_image_url: Optional[str] = Query(None, description="Optional proof image URL"),
+    current_user: PublicUser = Depends(get_current_user),
+    db_session: Session = Depends(get_db_session),
+):
+    """
+    Admin verifies a payment transaction.
+
+    Marks transaction as VERIFIED and triggers enrollment creation.
+    Requires organization admin role.
+    """
+    return await payment_service.verify_transaction(
+        db_session=db_session,
+        transaction_id=transaction_id,
+        org_id=org_id,
+        admin_user_id=str(current_user.id),
+        proof_image_url=proof_image_url,
+    )
+
+
+@router.post("/{transaction_id}/reject", response_model=ManualTransactionRead, dependencies=[Depends(require_org_admin)])
+async def reject_transaction(
+    request: Request,
+    org_id: int = Path(..., description="Organization ID"),
+    transaction_id: str = Path(..., description="Transaction ID"),
+    reason: str = Query(..., description="Rejection reason"),
+    current_user: PublicUser = Depends(get_current_user),
+    db_session: Session = Depends(get_db_session),
+):
+    """
+    Admin rejects a payment transaction.
+
+    Marks transaction as REJECTED with reason. Student can create new transaction.
+    Requires organization admin role.
+    """
+    return await payment_service.reject_transaction(
+        db_session=db_session,
+        transaction_id=transaction_id,
+        org_id=org_id,
+        admin_user_id=str(current_user.id),
+        reason=reason,
+    )
