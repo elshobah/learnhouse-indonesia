@@ -4,13 +4,13 @@
  * Frontend service for calling Payment Indonesia API endpoints
  */
 
+import { getAPIUrl } from '@services/config/config'
+
 interface FetchOptions {
   revalidate?: number
   tags?: string[]
   accessToken?: string | null
 }
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 // ============================================================================
 // Student Endpoints
@@ -36,7 +36,7 @@ export async function createPaymentTransaction(
   })
 
   const response = await fetch(
-    `${API_URL}/api/v1/orgs/${orgId}/payment-id/create?${params.toString()}`,
+    `${getAPIUrl()}orgs/${orgId}/payment-id/create?${params.toString()}`,
     {
       method: 'POST',
       headers: {
@@ -64,7 +64,7 @@ export async function getPaymentTransactionStatus(
   options: FetchOptions = {}
 ) {
   const response = await fetch(
-    `${API_URL}/api/v1/orgs/${orgId}/payment-id/${transactionId}`,
+    `${getAPIUrl()}orgs/${orgId}/payment-id/${transactionId}`,
     {
       headers: {
         ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
@@ -101,7 +101,7 @@ export async function listPendingTransactions(
   })
 
   const response = await fetch(
-    `${API_URL}/api/v1/orgs/${orgId}/payment-id/pending?${params.toString()}`,
+    `${getAPIUrl()}orgs/${orgId}/payment-id/pending?${params.toString()}`,
     {
       headers: {
         ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
@@ -137,7 +137,7 @@ export async function verifyPaymentTransaction(
   }
 
   const response = await fetch(
-    `${API_URL}/api/v1/orgs/${orgId}/payment-id/${transactionId}/verify?${params.toString()}`,
+    `${getAPIUrl()}orgs/${orgId}/payment-id/${transactionId}/verify?${params.toString()}`,
     {
       method: 'POST',
       headers: {
@@ -170,7 +170,7 @@ export async function rejectPaymentTransaction(
   })
 
   const response = await fetch(
-    `${API_URL}/api/v1/orgs/${orgId}/payment-id/${transactionId}/reject?${params.toString()}`,
+    `${getAPIUrl()}orgs/${orgId}/payment-id/${transactionId}/reject?${params.toString()}`,
     {
       method: 'POST',
       headers: {
@@ -199,7 +199,7 @@ export async function getPaymentConfig(
   accessToken: string | null,
   options: FetchOptions = {}
 ) {
-  const response = await fetch(`${API_URL}/api/v1/orgs/${orgId}/payment-id/config`, {
+  const response = await fetch(`${getPaymentAPIUrl()}/api/v1/orgs/${orgId}/payment-id/config`, {
     headers: {
       ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
     },
@@ -228,7 +228,7 @@ export async function updatePaymentConfig(
   },
   accessToken: string | null = null
 ) {
-  const response = await fetch(`${API_URL}/api/v1/orgs/${orgId}/payment-id/config`, {
+  const response = await fetch(`${getPaymentAPIUrl()}/api/v1/orgs/${orgId}/payment-id/config`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
