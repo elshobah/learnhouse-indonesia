@@ -411,7 +411,7 @@ function TransactionsSection() {
                           </Button>
                         }
                         functionToExecute={() => handleVerify(tx.transaction_id)}
-                        status="success"
+                        status="info"
                       />
                       <Button
                         size="sm"
